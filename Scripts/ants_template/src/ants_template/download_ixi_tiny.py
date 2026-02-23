@@ -1,4 +1,4 @@
-"""Download IXITiny using TorchIO and print T1 image paths."""
+"""Download IXITiny using TorchIO and print image paths."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ def main() -> None:
     import torchio as tio
 
     dataset = tio.datasets.IXITiny(root=args.root, download=True)
-    paths = sorted(subject.t1.path for subject in dataset)
+    paths = sorted(subject.image.path for subject in dataset)
     for path in paths:
         print(path)
 
