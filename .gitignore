@@ -21,3 +21,4 @@ bin
 build
 *.orig
 *.bak
+.venv
