@@ -1,0 +1,57 @@
+name: Template from IXITiny
+
+on:
+  push:
+    branches:
+      - "master"
+  pull_request:
+    branches:
+      - "master"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-template:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Scripts/ants_template
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install dependencies (including TorchIO for IXITiny download)
+        run: uv sync --extra ixi
+
+      - name: Install NiftyReg binaries
+        run: uv run niftyregw install
+
+      - name: Download IXITiny
+        run: >
+          uv run python -m ants_template.download_ixi_tiny
+          --root "${{ runner.temp }}/ixi_tiny"
+          > "${{ runner.temp }}/ixi_paths.txt"
+
+      - name: Build template
+        run: >
+          uv run ants-template
+          --iterations 1
+          --transform Affine
+          --output-prefix "${{ runner.temp }}/template_"
+          --rigid-init
+          $(cat "${{ runner.temp }}/ixi_paths.txt" | tr '\n' ' ')
+
+      - name: Upload template
+        uses: actions/upload-artifact@v4
+        with:
+          name: ixi-tiny-template
+          path: ${{ runner.temp }}/template_template0.nii.gz
