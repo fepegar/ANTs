@@ -9,6 +9,9 @@ dependencies = [
     "typer>=0.24.1",
 ]
 
+[project.optional-dependencies]
+ixi = ["torchio"]
+
 [project.scripts]
 ants-template = "ants_template.cli:app"
 

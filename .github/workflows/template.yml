@@ -26,11 +26,8 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v5
 
-      - name: Install dependencies
-        run: uv sync
-
-      - name: Install TorchIO
-        run: uv pip install torchio
+      - name: Install dependencies (including TorchIO for IXITiny download)
+        run: uv sync --extra ixi
 
       - name: Install NiftyReg binaries
         run: uv run niftyregw install
@@ -39,6 +36,7 @@ jobs:
         run: >
           uv run python -m ants_template.download_ixi_tiny
           --root "${{ runner.temp }}/ixi_tiny"
+          > "${{ runner.temp }}/ixi_paths.txt"
 
       - name: Build template
         run: >
@@ -47,7 +45,7 @@ jobs:
           --transform Affine
           --output-prefix "${{ runner.temp }}/template_"
           --rigid-init
-          "${{ runner.temp }}"/ixi_tiny/image/*.nii.gz
+          $(cat "${{ runner.temp }}/ixi_paths.txt" | tr '\n' ' ')
 
       - name: Upload template
         uses: actions/upload-artifact@v4
