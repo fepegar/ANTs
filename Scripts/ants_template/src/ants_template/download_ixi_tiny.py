@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import sys
 from pathlib import Path
 
 
@@ -20,7 +22,10 @@ def main() -> None:
 
     import torchio as tio
 
-    dataset = tio.datasets.IXITiny(root=args.root, download=True)
+    # Redirect stdout to stderr during download to prevent TorchIO/tqdm
+    # messages from contaminating the file paths output
+    with contextlib.redirect_stdout(sys.stderr):
+        dataset = tio.datasets.IXITiny(root=args.root, download=True)
     paths = sorted(subject.image.path for subject in dataset)
     for path in paths:
         print(path)
