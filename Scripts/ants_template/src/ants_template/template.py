@@ -24,17 +24,13 @@ def _average_images(
         images: List of input images.
         statistic: Statistic to use for averaging.
     """
-    if statistic == ImageStatistic.MEAN:
-        args = [str(output), "-avg", *[str(img) for img in images]]
-    elif statistic == ImageStatistic.NORMALIZED_MEAN:
-        # NiftyReg's reg_average -avg computes the mean; for normalized mean,
-        # we just use the standard average (NiftyReg doesn't have a built-in
-        # normalized mean, but the average is sufficient for template building)
-        args = [str(output), "-avg", *[str(img) for img in images]]
-    else:
-        msg = f"Unsupported statistic: {statistic}"
-        raise ValueError(msg)
+    if statistic == ImageStatistic.NORMALIZED_MEAN:
+        logger.warning(
+            "NiftyReg does not support normalized mean averaging natively."
+            " Using standard mean instead."
+        )
 
+    args = [str(output), "-avg", *[str(img) for img in images]]
     tool_logger = logger.bind(executable="reg_average")
     run("reg_average", *args, tool_logger=tool_logger)
 
@@ -260,8 +256,8 @@ def build_template(
     time_start = time.time()
 
     # Validate inputs
-    if len(images) == 0:
-        msg = "At least 2 images are required."
+    if len(images) < 2:
+        msg = f"At least 2 images are required, got {len(images)}."
         raise ValueError(msg)
 
     if len(images) % num_modalities != 0:
